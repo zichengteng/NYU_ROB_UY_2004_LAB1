@@ -12,9 +12,9 @@ JOINT_NAME_LEAD = "leg_front_r_3"
 
 ####
 ####
-KP = 0.0  # YOUR KP VALUE
-KI = 0.0 # YOUR KI VALUE
-KD = 0.0  # YOUR KD VALUE
+KP = 0.2  # YOUR KP VALUE
+KI = 1e-5 # YOUR KI VALUE
+KD = 1e-5  # YOUR KD VALUE
 ####
 ####
 LOOP_RATE = 200  # Hz
@@ -22,7 +22,7 @@ DELTA_T = 1 / LOOP_RATE
 MAX_TORQUE = 2.0
 DEAD_BAND_SIZE = 0.095
 PENDULUM_CONTROL = False
-LEG_TRACKING_CONTROL = False
+LEG_TRACKING_CONTROL = not PENDULUM_CONTROL
 
 
 class JointStateSubscriber(Node):
@@ -66,12 +66,15 @@ class JointStateSubscriber(Node):
         torque = self.direction * 0.14
 
         return torque
+    
+    # def calculate_torque_for_leg_tracking_control(self, joint_pos, target_joint_pos):
+    #     return KP*(target_joint_pos-joint_pos)
 
     def calculate_torque_for_leg_tracking(self, joint_pos, joint_vel, target_joint_pos, target_joint_vel):
         ####
         #### YOUR CODE HERE
-        ####
-        torque = 0
+        #### I changed this already, but it seems the name in lab is wrong
+        torque = KP*(target_joint_pos-joint_pos)+KD*(self.last_joint_error)
 
 
 
@@ -85,8 +88,9 @@ class JointStateSubscriber(Node):
 
     def print_info(self):
         """Print joint information every 2 control loops"""
-        if True:
-            return
+        
+        # if True:
+        #    return
             
         if self.print_counter == 0:
             self.get_logger().info(
