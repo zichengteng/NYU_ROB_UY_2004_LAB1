@@ -12,9 +12,9 @@ JOINT_NAME_LEAD = "leg_front_r_3"
 
 ####
 ####
-KP = 0.2  # YOUR KP VALUE
-KI = 1e-5 # YOUR KI VALUE
-KD = 1e-5  # YOUR KD VALUE
+KP = 9e-1  # YOUR KP VALUE
+KI = 1e-1 # YOUR KI VALUE
+KD = 5e-2  # YOUR KD VALUE
 ####
 ####
 LOOP_RATE = 200  # Hz
@@ -35,7 +35,7 @@ class JointStateSubscriber(Node):
             JointState, "/joint_states", self.get_joint_info, 10  # QoS profile history depth
         )
         self.subscription  # prevent unused variable warning
-
+        self.sum_joint_error=0
         # Publisher to the /forward_command_controller/commands topic
         self.command_publisher = self.create_publisher(Float64MultiArray, "/forward_command_controller/commands", 10)
         self.command_publisher_lead = self.create_publisher(Float64MultiArray, "/forward_command_controller_lead/commands", 10)
@@ -74,7 +74,9 @@ class JointStateSubscriber(Node):
         ####
         #### YOUR CODE HERE
         #### I changed this already, but it seems the name in lab is wrong
-        torque = KP*(target_joint_pos-joint_pos)+KD*(self.last_joint_error)
+        self.sum_joint_error+=(target_joint_pos-joint_pos)
+        self.sum_joint_error=np.clip(self.sum_joint_error,-0.3,0.3)
+        torque = KP*(target_joint_pos-joint_pos)+KD*(target_joint_vel-joint_vel)+KI*self.sum_joint_error
 
 
 
